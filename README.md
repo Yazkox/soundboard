@@ -1,5 +1,11 @@
 # Python Soundboard
 
+This repo provides a soundboard which takes the sound from your microphone, add the sound when keybind is pressed, and output the sum of the two to another device.
+
+If you want to use it as a soundboard with friend on discord, you will need to install an audio cable and setup discord to get the input from the output of the audio cable.
+
+That means that when discord is setup like that, if the program is not running, there will be no input
+
 ## Requirements
 
 - python3
