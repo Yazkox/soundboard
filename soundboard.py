@@ -43,19 +43,20 @@ class InputHandler:
 
         # Start input threads
         threading.Thread(target=self._keyboard_listener, daemon=True).start()
-        #threading.Thread(target=self._mouse_listener, daemon=True).start()
+        threading.Thread(target=self._mouse_listener, daemon=True).start()
         threading.Thread(target=self._controller_listener, daemon=True).start()
 
-    def bind_key(self, key: str, callback: Callable):
+    def bind_key(self, key: str, callback: Callable, arguments: List):
         """Bind a key or controller button to a callback."""
-        self.keybindings[key] = callback
+        self.keybindings[key] = (callback, arguments)
 
     def _keyboard_listener(self):
         def on_press(key):
             try:
                 key_name = key.char.upper() if key.char else key.name.upper()
                 if key_name in self.keybindings:
-                    self.keybindings[key_name]()
+                    callback, args = self.keybindings[key_name]
+                    callback(*args)
             except AttributeError:
                 pass
 
@@ -67,7 +68,8 @@ class InputHandler:
             if pressed:
                 button_name = f"MOUSE_{button.name.upper()}"
                 if button_name in self.keybindings:
-                    self.keybindings[button_name]()
+                    callback, args = self.keybindings[button_name]
+                    callback(*args)
 
         with mouse.Listener(on_click=on_click) as listener:
             listener.join()
@@ -79,7 +81,8 @@ class InputHandler:
                 if event.ev_type == "Key" and event.state == 1:  # Button pressed
                     button = event.code
                     if button in self.keybindings:
-                        self.keybindings[button]()
+                        callback, args = self.keybindings[button]
+                        callback(*args)
 
     def stop(self):
         self.running = False
@@ -147,9 +150,7 @@ def main():
     mixer = AudioMixer()
     input_handler = InputHandler()
     for key, sound_file in keybinds.items():
-        def callback():
-            mixer.trigger_wav(sound_file)
-        input_handler.bind_key(key, callback)
+        input_handler.bind_key(key, mixer.trigger_wav, [sound_file])
         
     try:
         mixer.start()
